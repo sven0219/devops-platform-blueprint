@@ -16,16 +16,34 @@
 
 ## 2. 总体架构
 
-平台整体采用：
+平台整体采用 GitHub Actions + GitOps + ArgoCD 的交付架构。下面的 Mermaid 图可以在 GitHub README 中直接可视化渲染：
 
-```text
-业务代码仓库
-  -> GitHub Actions CI
-  -> 镜像仓库
-  -> GitOps 仓库
-  -> ArgoCD
-  -> 多环境 Kubernetes 集群
-  -> Prometheus / ELK / OpenTelemetry / 安全策略
+```mermaid
+flowchart LR
+  Dev["开发者"] --> PR["Pull Request"]
+  PR --> CI["GitHub Actions CI<br/>Lint / Test / Build / Scan"]
+  CI --> Registry["镜像仓库<br/>Version + Git SHA"]
+  CI --> GitOps["GitOps 仓库<br/>Helm / Kustomize / ArgoCD App"]
+  GitOps --> ArgoCD["ArgoCD<br/>Diff / Sync / Rollback"]
+
+  ArgoCD --> DevCluster["Dev K8s 集群"]
+  ArgoCD --> TestCluster["Test K8s 集群"]
+  ArgoCD --> StagingCluster["Staging K8s 集群"]
+  ArgoCD --> ProdCluster["Prod K8s 独立集群"]
+
+  Registry -. "Pull Image" .-> DevCluster
+  Registry -. "Pull Image" .-> TestCluster
+  Registry -. "Pull Image" .-> StagingCluster
+  Registry -. "Pull Image" .-> ProdCluster
+
+  DevCluster --> Obs["可观测平台<br/>Prometheus / ELK / OpenTelemetry"]
+  TestCluster --> Obs
+  StagingCluster --> Obs
+  ProdCluster --> Obs
+
+  Security["安全治理<br/>RBAC / NetworkPolicy / Secret / Policy"] -.-> GitOps
+  Security -.-> ArgoCD
+  Security -.-> ProdCluster
 ```
 
 职责边界：
@@ -61,6 +79,19 @@ gitops-repo/
     staging/
     prod/
 ```
+
+这个结构符合 GitOps 的主流实践，尤其适合 ArgoCD 的 App of Apps 模式。它的核心优点是把“ArgoCD 应用入口”和“各环境部署参数”分开管理：
+
+- `argocd-apps/`：存放 ArgoCD `Application` 或 `ApplicationSet`，描述哪些应用要部署到哪些集群或命名空间。
+- `argocd-apps/root-app.yaml`：作为 App of Apps 的根应用入口，由它递归管理各环境应用。
+- `argocd-apps/dev|test|staging|prod/`：按环境拆分 ArgoCD 应用声明，便于设置不同同步策略和权限边界。
+- `charts/`：存放通用 Helm Chart 或可复用部署模板。
+- `environments/dev|test|staging|prod/`：存放各环境的 values、Kustomize overlay、资源配额、环境变量和策略差异。
+
+落地时建议补充两个约束：
+
+- 生产环境的 `prod` 配置变更必须走 PR 审批，不能由 CI 直接 `kubectl apply`。
+- 如果服务数量很多，可以在 `environments/<env>/apps/<service>/` 下继续按服务拆分，避免单个 values 文件过大。
 
 ## 3. 基础设施规划
 
