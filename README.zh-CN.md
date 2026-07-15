@@ -105,16 +105,28 @@ GitOps 模板符合 GitOps 的主流实践，尤其适合 ArgoCD 的 App of Apps
 示例已经实现的最小交付闭环：
 
 ```mermaid
-flowchart LR
-  Merge["合并应用代码"] --> Build["构建并扫描镜像"]
-  Build --> Push["推送到 GHCR"]
-  Push --> DevPR["创建 Dev GitOps PR"]
-  DevPR --> Argo["合并 PR 并由 Argo CD 部署"]
-  Argo --> Smoke["PostSync Smoke Test"]
-  Smoke --> Promote["晋级同一镜像"]
-  Promote --> Test["Test"]
-  Test --> Staging["Staging"]
-  Staging --> Prod["Prod"]
+flowchart TD
+  subgraph AppRepo["应用仓库"]
+    Merge["合并代码到 main"]
+    Validate["运行测试和依赖审计"]
+    Build["构建不可变镜像"]
+    Scan["扫描 HIGH/CRITICAL 漏洞"]
+    Push["推送镜像到 GHCR<br/>v&lt;version&gt;-&lt;short-sha&gt;"]
+  end
+
+  subgraph GitOpsRepo["GitOps 仓库"]
+    DevPR["创建 Dev GitOps PR<br/>更新 image repository 和 tag"]
+    Review["评审并合并 GitOps PR"]
+    Argo["Argo CD 同步期望状态"]
+    Smoke["PostSync Smoke Test<br/>GET /healthz"]
+    Promote["晋级同一镜像<br/>环境间不重新构建"]
+  end
+
+  Merge --> Validate --> Build --> Scan --> Push --> DevPR
+  DevPR --> Review --> Argo --> Smoke --> Promote
+  Promote --> Test["Test PR 和同步"]
+  Test --> Staging["Staging PR 和同步"]
+  Staging --> Prod["Prod PR 审批<br/>手动 Argo CD 同步"]
 ```
 
 `examples/app-repo` 和 `examples/gitops-repo` 是两个独立 GitHub 仓库的模板。分别将目录作为独立仓库根目录后，目录内的 workflow 才会生效。应用仓库需要配置 `GITOPS_REPOSITORY` 和 `GITOPS_TOKEN`；GitOps 仓库需要配置 `PROMOTION_TOKEN`，以及名为 `test`、`staging`、`prod` 的 GitHub Environments。Token 权限和实际操作方式见两个示例目录内的 README。

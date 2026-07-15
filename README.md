@@ -107,16 +107,28 @@ Recommended constraints:
 Minimum delivery loop implemented by the examples:
 
 ```mermaid
-flowchart LR
-  Merge["Merge application code"] --> Build["Build and scan image"]
-  Build --> Push["Push to GHCR"]
-  Push --> DevPR["Create Dev GitOps PR"]
-  DevPR --> Argo["Merge PR and deploy with Argo CD"]
-  Argo --> Smoke["PostSync smoke test"]
-  Smoke --> Promote["Promote the same image"]
-  Promote --> Test["Test"]
-  Test --> Staging["Staging"]
-  Staging --> Prod["Prod"]
+flowchart TD
+  subgraph AppRepo["Application repository"]
+    Merge["Merge code to main"]
+    Validate["Run tests and dependency audit"]
+    Build["Build immutable image"]
+    Scan["Scan image for HIGH/CRITICAL findings"]
+    Push["Push image to GHCR<br/>v&lt;version&gt;-&lt;short-sha&gt;"]
+  end
+
+  subgraph GitOpsRepo["GitOps repository"]
+    DevPR["Create Dev GitOps PR<br/>update image repository and tag"]
+    Review["Review and merge GitOps PR"]
+    Argo["Argo CD syncs desired state"]
+    Smoke["PostSync smoke test<br/>GET /healthz"]
+    Promote["Promote the same image<br/>no rebuild between environments"]
+  end
+
+  Merge --> Validate --> Build --> Scan --> Push --> DevPR
+  DevPR --> Review --> Argo --> Smoke --> Promote
+  Promote --> Test["Test PR and sync"]
+  Test --> Staging["Staging PR and sync"]
+  Staging --> Prod["Prod PR approval<br/>manual Argo CD sync"]
 ```
 
 `examples/app-repo` and `examples/gitops-repo` are templates for two independent GitHub repositories. Nested workflows become active when each directory is used as the root of its own repository. The application repository requires `GITOPS_REPOSITORY` and `GITOPS_TOKEN`; the GitOps repository requires `PROMOTION_TOKEN` and GitHub Environments named `test`, `staging`, and `prod`. See each example's README for token permissions and operating instructions.
