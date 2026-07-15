@@ -1,9 +1,10 @@
-# Replace these example teams with real GitHub teams before enforcing reviews.
-* @example-org/platform-engineering
+# Root blueprint repository ownership. Keep example team names only inside
+# examples/* templates, where adopters replace them after copying.
+* @sven0219
 
-/README.md @example-org/platform-engineering
-/README.zh-CN.md @example-org/platform-engineering
-/docs/ @example-org/platform-engineering
+/README.md @sven0219
+/README.zh-CN.md @sven0219
+/docs/ @sven0219
 
-/examples/app-repo/ @example-org/app-team @example-org/platform-engineering
-/examples/gitops-repo/ @example-org/platform-engineering @example-org/sre
+/examples/app-repo/ @sven0219
+/examples/gitops-repo/ @sven0219
