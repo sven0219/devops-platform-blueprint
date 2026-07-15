@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: demo-service-prod
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/example-org/gitops-repo.git
+      targetRevision: main
+      path: charts/demo-service
+      helm:
+        valueFiles:
+          - $values/environments/prod/demo-service-values.yaml
+    - repoURL: https://github.com/example-org/gitops-repo.git
+      targetRevision: main
+      ref: values
+  destination:
+    name: prod-cluster
+    namespace: demo-prod
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true

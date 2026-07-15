@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: demo-service-staging
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/example-org/gitops-repo.git
+      targetRevision: main
+      path: charts/demo-service
+      helm:
+        valueFiles:
+          - $values/environments/staging/demo-service-values.yaml
+    - repoURL: https://github.com/example-org/gitops-repo.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: demo-staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

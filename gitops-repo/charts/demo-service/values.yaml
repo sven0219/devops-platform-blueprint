@@ -1,0 +1,22 @@
+replicaCount: 2
+
+image:
+  repository: ghcr.io/example-org/demo-service
+  tag: v0.1.0-placeholder
+  pullPolicy: IfNotPresent
+
+service:
+  port: 80
+  targetPort: 3000
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+env:
+  APP_ENV: dev
+  SERVICE_NAME: demo-service
