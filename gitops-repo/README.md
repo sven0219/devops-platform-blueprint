@@ -21,6 +21,8 @@ environments/
 .github/workflows/
   validate.yaml          Render and validate every environment
   promote.yaml           Copy one immutable image to the next environment
+.github/CODEOWNERS       Review ownership by environment and path
+.github/dependabot.yaml  Dependency update schedule for workflows
 ```
 
 ## Delivery Flow
@@ -45,5 +47,13 @@ Configure the GitOps GitHub repository with a `PROMOTION_TOKEN` secret. Use a fi
 Create GitHub Environments named `test`, `staging`, and `prod`; add required reviewers where promotion approval is needed. Before bootstrapping Argo CD, replace the `example-org` repository and image references and register the `prod-cluster` destination.
 
 Production changes must be reviewed through pull requests. CI updates Git state and never runs `kubectl apply` against a cluster.
+
+## Repository Governance
+
+- Replace `@example-org/*` in `.github/CODEOWNERS` with real teams before requiring owner reviews.
+- Protect `main` and require `validate.yaml` before merge.
+- Require CODEOWNER review for `environments/prod/`, `argocd-apps/prod/`, and promotion workflow changes.
+- Dependabot opens weekly pull requests for GitHub Actions updates.
+- Use the PR template to record target environment, rendered manifest validation, image reference, rollback image or commit, and production approval status.
 
 This directory represents an independent GitOps repository. Its nested workflows only run after the directory is used as the root of its own GitHub repository.

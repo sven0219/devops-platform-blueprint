@@ -1,0 +1,10 @@
+# Replace these example teams with real GitHub teams before enforcing reviews.
+* @example-org/platform-engineering @example-org/sre
+
+/.github/workflows/ @example-org/platform-engineering
+/argocd-apps/ @example-org/platform-engineering @example-org/sre
+/charts/ @example-org/platform-engineering @example-org/app-team
+/environments/dev/ @example-org/app-team @example-org/platform-engineering
+/environments/test/ @example-org/app-team @example-org/qa
+/environments/staging/ @example-org/app-team @example-org/sre
+/environments/prod/ @example-org/app-team @example-org/sre @example-org/security
