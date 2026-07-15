@@ -72,6 +72,9 @@ Recommended repository split:
   package.json
 
 ./gitops-repo/
+  .github/workflows/
+    validate.yaml
+    promote.yaml
   argocd-apps/
     root-app.yaml
     dev/
@@ -98,6 +101,20 @@ Recommended constraints:
 
 - Production changes under `prod` must go through pull request review. CI should not run `kubectl apply` directly against production.
 - For many services, split further under `environments/<env>/apps/<service>/` to avoid large shared values files.
+
+Minimum delivery loop implemented by the examples:
+
+```text
+Merge application code
+  -> Build and scan an immutable image
+  -> Push the image to GHCR
+  -> Create a Dev GitOps pull request
+  -> Merge and let Argo CD deploy
+  -> Run an in-cluster PostSync smoke test
+  -> Promote the same image through Test, Staging, and Prod pull requests
+```
+
+`app-repo` and `gitops-repo` are templates for two independent GitHub repositories. Nested workflows become active when each directory is used as the root of its own repository. The application repository requires `GITOPS_REPOSITORY` and `GITOPS_TOKEN`; the GitOps repository requires `PROMOTION_TOKEN` and GitHub Environments named `test`, `staging`, and `prod`. See each example's README for token permissions and operating instructions.
 
 ## 3. Infrastructure Plan
 
