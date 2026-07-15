@@ -11,6 +11,7 @@ on:
 
 env:
   IMAGE_NAME: demo-service
+  GITOPS_REPOSITORY: ${{ vars.GITOPS_REPOSITORY || 'example-org/gitops-repo' }}
 
 jobs:
   validate:
@@ -43,7 +44,9 @@ jobs:
     permissions:
       contents: read
       packages: write
-      security-events: write
+    outputs:
+      image: ${{ steps.meta.outputs.image }}
+      tag: ${{ steps.meta.outputs.tag }}
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -51,8 +54,10 @@ jobs:
       - name: Generate image tag
         id: meta
         run: |
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
           short_sha="${GITHUB_SHA::7}"
           version="$(node -p "require('./package.json').version")"
+          echo "image=ghcr.io/${owner}/${IMAGE_NAME}" >> "$GITHUB_OUTPUT"
           echo "tag=v${version}-${short_sha}" >> "$GITHUB_OUTPUT"
 
       - name: Build image
@@ -61,12 +66,13 @@ jobs:
             --label org.opencontainers.image.source="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" \
             --label org.opencontainers.image.revision="${GITHUB_SHA}" \
             --label org.opencontainers.image.version="${{ steps.meta.outputs.tag }}" \
-            -t "ghcr.io/${GITHUB_REPOSITORY_OWNER}/${IMAGE_NAME}:${{ steps.meta.outputs.tag }}" .
+            --label org.opencontainers.image.created="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            -t "${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}" .
 
       - name: Scan image
         uses: aquasecurity/trivy-action@0.24.0
         with:
-          image-ref: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tag }}
+          image-ref: ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
           format: table
           exit-code: "1"
           severity: CRITICAL,HIGH
@@ -74,4 +80,46 @@ jobs:
       - name: Push image
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-          docker push "ghcr.io/${GITHUB_REPOSITORY_OWNER}/${IMAGE_NAME}:${{ steps.meta.outputs.tag }}"
+          docker push "${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}"
+
+  update-dev:
+    name: Create Dev GitOps pull request
+    needs: build
+    runs-on: ubuntu-latest
+    concurrency:
+      group: demo-service-dev-gitops
+      cancel-in-progress: false
+    permissions:
+      contents: read
+    steps:
+      - name: Check out GitOps repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.GITOPS_REPOSITORY }}
+          token: ${{ secrets.GITOPS_TOKEN }}
+          path: gitops
+
+      - name: Update Dev image
+        uses: mikefarah/yq@v4.44.3
+        with:
+          cmd: >-
+            yq -i
+            '.image.repository = "${{ needs.build.outputs.image }}" |
+            .image.tag = "${{ needs.build.outputs.tag }}"'
+            gitops/environments/dev/demo-service-values.yaml
+
+      - name: Create Dev deployment pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITOPS_TOKEN }}
+          path: gitops
+          branch: deploy/demo-service-dev
+          delete-branch: true
+          commit-message: Deploy demo-service ${{ needs.build.outputs.tag }} to Dev
+          title: Deploy demo-service ${{ needs.build.outputs.tag }} to Dev
+          body: |
+            Automated deployment request from `${{ github.repository }}`.
+
+            - Image: `${{ needs.build.outputs.image }}:${{ needs.build.outputs.tag }}`
+            - Source commit: `${{ github.sha }}`
+            - Target environment: `dev`
