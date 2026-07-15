@@ -106,14 +106,17 @@ Recommended constraints:
 
 Minimum delivery loop implemented by the examples:
 
-```text
-Merge application code
-  -> Build and scan an immutable image
-  -> Push the image to GHCR
-  -> Create a Dev GitOps pull request
-  -> Merge and let Argo CD deploy
-  -> Run an in-cluster PostSync smoke test
-  -> Promote the same image through Test, Staging, and Prod pull requests
+```mermaid
+flowchart LR
+  Merge["Merge application code"] --> Build["Build and scan image"]
+  Build --> Push["Push to GHCR"]
+  Push --> DevPR["Create Dev GitOps PR"]
+  DevPR --> Argo["Merge PR and deploy with Argo CD"]
+  Argo --> Smoke["PostSync smoke test"]
+  Smoke --> Promote["Promote the same image"]
+  Promote --> Test["Test"]
+  Test --> Staging["Staging"]
+  Staging --> Prod["Prod"]
 ```
 
 `examples/app-repo` and `examples/gitops-repo` are templates for two independent GitHub repositories. Nested workflows become active when each directory is used as the root of its own repository. The application repository requires `GITOPS_REPOSITORY` and `GITOPS_TOKEN`; the GitOps repository requires `PROMOTION_TOKEN` and GitHub Environments named `test`, `staging`, and `prod`. See each example's README for token permissions and operating instructions.

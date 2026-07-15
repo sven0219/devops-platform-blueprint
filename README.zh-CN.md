@@ -104,14 +104,17 @@ GitOps 模板符合 GitOps 的主流实践，尤其适合 ArgoCD 的 App of Apps
 
 示例已经实现的最小交付闭环：
 
-```text
-合并应用代码
-  -> 构建并扫描不可变镜像
-  -> 推送镜像到 GHCR
-  -> 自动创建 Dev GitOps PR
-  -> 合并后由 Argo CD 部署
-  -> 执行集群内 PostSync Smoke Test
-  -> 通过 PR 将同一镜像依次晋级到 Test、Staging 和 Prod
+```mermaid
+flowchart LR
+  Merge["合并应用代码"] --> Build["构建并扫描镜像"]
+  Build --> Push["推送到 GHCR"]
+  Push --> DevPR["创建 Dev GitOps PR"]
+  DevPR --> Argo["合并 PR 并由 Argo CD 部署"]
+  Argo --> Smoke["PostSync Smoke Test"]
+  Smoke --> Promote["晋级同一镜像"]
+  Promote --> Test["Test"]
+  Test --> Staging["Staging"]
+  Staging --> Prod["Prod"]
 ```
 
 `examples/app-repo` 和 `examples/gitops-repo` 是两个独立 GitHub 仓库的模板。分别将目录作为独立仓库根目录后，目录内的 workflow 才会生效。应用仓库需要配置 `GITOPS_REPOSITORY` 和 `GITOPS_TOKEN`；GitOps 仓库需要配置 `PROMOTION_TOKEN`，以及名为 `test`、`staging`、`prod` 的 GitHub Environments。Token 权限和实际操作方式见两个示例目录内的 README。
