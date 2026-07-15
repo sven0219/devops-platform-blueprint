@@ -12,6 +12,9 @@ This blueprint includes starter governance files that should be adapted to the t
 - `.github/pull_request_template.md`: common pull request checklist for documentation, platform, and template changes.
 - `.github/dependabot.yaml`: dependency update schedule for GitHub Actions and the sample application.
 - `docs/release-hotfix.md`: bilingual release, hotfix, rollback, and approval process.
+- `docs/service-onboarding.md`: checklist for onboarding a new service to the app and GitOps templates.
+- `docs/environment-entry.md`: environment entry and exit criteria for Dev, Test, Staging, and Prod.
+- `docs/prod-change-runbook.md`: production change execution, verification, and rollback runbook.
 - `docs/adr/`: architecture decision record index, template, and the first accepted ADR.
 - `LICENSE`: MIT license for reuse as a platform blueprint.
 
@@ -80,6 +83,9 @@ Recommended repository split:
 
 ./docs/
   release-hotfix.md
+  service-onboarding.md
+  environment-entry.md
+  prod-change-runbook.md
   adr/
 
 ./app-repo/
@@ -285,6 +291,9 @@ Repository governance:
 - Dependabot should update GitHub Actions and package dependencies through normal PR review, not by bypassing CI.
 - Architecture decisions that change repository boundaries, promotion policy, production controls, or security posture should be recorded under `docs/adr/`.
 - Release and hotfix handling should follow `docs/release-hotfix.md`, including immutable image promotion and explicit rollback ownership.
+- New services should follow `docs/service-onboarding.md` before their first production promotion.
+- Environment promotions should use `docs/environment-entry.md` as the evidence checklist.
+- Production changes should follow `docs/prod-change-runbook.md` and record verification evidence in the production pull request.
 
 ## 9. Roles and Collaboration
 
@@ -334,6 +343,7 @@ Acceptance criteria:
 - RBAC, NetworkPolicy, secret management, admission control, and production security baseline.
 - Release process, rollback process, environment entry rules, incident response, and review templates.
 - Platform operation guide, service onboarding guide, and acceptance criteria.
+- Production change runbook, environment entry checklist, and service onboarding checklist.
 
 ## 13. Recommended Technology Stack
 
