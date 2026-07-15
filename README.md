@@ -4,6 +4,17 @@
 
 A practical DevOps platform blueprint for multi-environment Kubernetes, GitHub Actions CI, GitOps-based continuous delivery, observability, security controls, and engineering governance.
 
+## Repository Governance Assets
+
+This blueprint includes starter governance files that should be adapted to the target GitHub organization before enforcement:
+
+- `.github/CODEOWNERS`: review ownership for the blueprint, example app, GitOps templates, and ADRs.
+- `.github/pull_request_template.md`: common pull request checklist for documentation, platform, and template changes.
+- `.github/dependabot.yaml`: dependency update schedule for GitHub Actions and the sample application.
+- `docs/release-hotfix.md`: bilingual release, hotfix, rollback, and approval process.
+- `docs/adr/`: architecture decision record index, template, and the first accepted ADR.
+- `LICENSE`: MIT license for reuse as a platform blueprint.
+
 ## 1. Goals
 
 This blueprint describes a standardized, automated, observable, auditable, rollback-friendly, and security-aware DevOps platform. It covers the full delivery path from code submission, CI validation, image build, vulnerability scanning, GitOps deployment, runtime monitoring, and release governance.
@@ -62,8 +73,23 @@ Responsibility boundaries:
 Recommended repository split:
 
 ```text
+./.github/
+  CODEOWNERS
+  dependabot.yaml
+  pull_request_template.md
+
+./docs/
+  release-hotfix.md
+  adr/
+
 ./app-repo/
-  .github/workflows/ci.yaml
+  .github/
+    CODEOWNERS
+    dependabot.yaml
+    pull_request_template.md
+    workflows/
+      ci.yaml
+      release.yaml
   src/
     server.js
   test/
@@ -72,9 +98,13 @@ Recommended repository split:
   package.json
 
 ./gitops-repo/
-  .github/workflows/
-    validate.yaml
-    promote.yaml
+  .github/
+    CODEOWNERS
+    dependabot.yaml
+    pull_request_template.md
+    workflows/
+      validate.yaml
+      promote.yaml
   argocd-apps/
     root-app.yaml
     dev/
@@ -247,6 +277,14 @@ Environment entry criteria:
 | Test | Unit tests, integration tests, API tests, and dependency scanning pass |
 | Staging | Production-like configuration, regression tests, and critical path validation pass |
 | Prod | Security scans pass, approvals are complete, dashboards are ready, rollback plan is clear |
+
+Repository governance:
+
+- CODEOWNERS should map application code, GitOps environment folders, platform workflows, and production paths to accountable teams.
+- Pull request templates should require validation evidence, release impact, rollback notes, and environment scope.
+- Dependabot should update GitHub Actions and package dependencies through normal PR review, not by bypassing CI.
+- Architecture decisions that change repository boundaries, promotion policy, production controls, or security posture should be recorded under `docs/adr/`.
+- Release and hotfix handling should follow `docs/release-hotfix.md`, including immutable image promotion and explicit rollback ownership.
 
 ## 9. Roles and Collaboration
 
