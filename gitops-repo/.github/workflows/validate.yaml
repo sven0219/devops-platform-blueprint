@@ -1,0 +1,67 @@
+name: Validate GitOps configuration
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate ${{ matrix.environment }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        environment:
+          - dev
+          - test
+          - staging
+          - prod
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Lint chart
+        run: >-
+          helm lint charts/demo-service
+          --values environments/${{ matrix.environment }}/demo-service-values.yaml
+
+      - name: Render manifests
+        run: >-
+          helm template demo-service charts/demo-service
+          --namespace demo-${{ matrix.environment }}
+          --values environments/${{ matrix.environment }}/demo-service-values.yaml
+          > rendered.yaml
+
+      - name: Parse rendered YAML
+        run: >-
+          ruby -ryaml -e
+          'YAML.load_stream(File.read("rendered.yaml")); puts "rendered YAML is valid"'
+
+      - name: Reject mutable image tags
+        run: |
+          tag="$(ruby -ryaml -e 'puts YAML.load_file(ARGV[0]).dig("image", "tag")' \
+            "environments/${{ matrix.environment }}/demo-service-values.yaml")"
+          test -n "$tag"
+          test "$tag" != "latest"
+
+  argocd-apps:
+    name: Validate Argo CD applications
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Parse application manifests
+        run: |
+          find argocd-apps -name '*.yaml' -print0 | while IFS= read -r -d '' file; do
+            ruby -ryaml -e 'YAML.load_file(ARGV[0])' "$file"
+            echo "validated $file"
+          done

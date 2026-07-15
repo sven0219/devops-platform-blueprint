@@ -1,0 +1,79 @@
+name: Promote demo-service
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_environment:
+        description: Environment to promote into
+        required: true
+        type: choice
+        options:
+          - test
+          - staging
+          - prod
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  promote:
+    name: Promote to ${{ inputs.target_environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target_environment }}
+    concurrency:
+      group: promote-demo-service-${{ inputs.target_environment }}
+      cancel-in-progress: false
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PROMOTION_TOKEN }}
+
+      - name: Resolve promotion route
+        id: route
+        env:
+          TARGET: ${{ inputs.target_environment }}
+        run: |
+          case "$TARGET" in
+            test) source="dev" ;;
+            staging) source="test" ;;
+            prod) source="staging" ;;
+            *) echo "Unsupported target environment: $TARGET" >&2; exit 1 ;;
+          esac
+          echo "source=$source" >> "$GITHUB_OUTPUT"
+
+      - name: Copy the promoted image into the target environment
+        uses: mikefarah/yq@v4.44.3
+        env:
+          SOURCE: ${{ steps.route.outputs.source }}
+          TARGET: ${{ inputs.target_environment }}
+        with:
+          cmd: >-
+            yq -i
+            '.image.repository = load("environments/" + strenv(SOURCE) + "/demo-service-values.yaml").image.repository |
+            .image.tag = load("environments/" + strenv(SOURCE) + "/demo-service-values.yaml").image.tag'
+            environments/${{ inputs.target_environment }}/demo-service-values.yaml
+
+      - name: Read promoted image
+        id: image
+        env:
+          VALUES_FILE: environments/${{ inputs.target_environment }}/demo-service-values.yaml
+        run: |
+          image="$(ruby -ryaml -e 'v = YAML.load_file(ARGV[0]); puts "#{v.dig("image", "repository")}:#{v.dig("image", "tag")}"' "$VALUES_FILE")"
+          echo "reference=$image" >> "$GITHUB_OUTPUT"
+
+      - name: Create promotion pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.PROMOTION_TOKEN }}
+          branch: promote/demo-service-${{ steps.route.outputs.source }}-to-${{ inputs.target_environment }}
+          delete-branch: true
+          commit-message: Promote demo-service to ${{ inputs.target_environment }}
+          title: Promote demo-service from ${{ steps.route.outputs.source }} to ${{ inputs.target_environment }}
+          body: |
+            Promote the exact image that is currently declared in `${{ steps.route.outputs.source }}`.
+
+            - Image: `${{ steps.image.outputs.reference }}`
+            - Source environment: `${{ steps.route.outputs.source }}`
+            - Target environment: `${{ inputs.target_environment }}`

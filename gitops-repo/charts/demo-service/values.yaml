@@ -9,6 +9,12 @@ service:
   port: 80
   targetPort: 3000
 
+smokeTest:
+  enabled: true
+  image: curlimages/curl:8.10.1
+  attempts: 12
+  delaySeconds: 5
+
 resources:
   requests:
     cpu: 100m

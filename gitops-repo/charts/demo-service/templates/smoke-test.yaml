@@ -1,0 +1,61 @@
+{{- if .Values.smokeTest.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "demo-service.fullname" . }}-smoke-test
+  labels:
+    app.kubernetes.io/component: smoke-test
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: {{ add (mul .Values.smokeTest.attempts .Values.smokeTest.delaySeconds) 30 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: smoke-test
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: smoke-test
+          image: {{ .Values.smokeTest.image | quote }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -ec
+          args:
+            - |
+              attempt=1
+              while [ "$attempt" -le {{ .Values.smokeTest.attempts }} ]; do
+                if response="$(curl --fail --silent --show-error --max-time 5 \
+                  http://{{ include "demo-service.fullname" . }}:{{ .Values.service.port }}/healthz)" && \
+                  echo "$response" | grep -q '"status":"healthy"'; then
+                  echo "Smoke test passed: $response"
+                  exit 0
+                fi
+                echo "Smoke test attempt $attempt failed"
+                attempt=$((attempt + 1))
+                sleep {{ .Values.smokeTest.delaySeconds }}
+              done
+              echo "Smoke test failed after {{ .Values.smokeTest.attempts }} attempts" >&2
+              exit 1
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+{{- end }}
