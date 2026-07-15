@@ -1,0 +1,9 @@
+# Replace these example teams with real GitHub teams before enforcing reviews.
+* @example-org/platform-engineering
+
+/README.md @example-org/platform-engineering
+/README.zh-CN.md @example-org/platform-engineering
+/docs/ @example-org/platform-engineering
+
+/app-repo/ @example-org/app-team @example-org/platform-engineering
+/gitops-repo/ @example-org/platform-engineering @example-org/sre
