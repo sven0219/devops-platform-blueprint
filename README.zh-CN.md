@@ -75,58 +75,21 @@ flowchart LR
 
 ```text
 ./.github/
-  CODEOWNERS
-  dependabot.yaml
-  pull_request_template.md
+  仓库治理模板
 
 ./docs/
-  adr/
-  governance/
-    release-hotfix.md
-    environment-entry.md
-  guides/
-    service-onboarding.md
-  runbooks/
-    prod-change.md
+  架构决策、治理规范、指南和 runbook
 
 ./examples/app-repo/
-  .github/
-    CODEOWNERS
-    dependabot.yaml
-    pull_request_template.md
-    workflows/
-      ci.yaml
-      release.yaml
-  src/
-    server.js
-  test/
-    server.test.js
-  Dockerfile
-  package.json
+  应用仓库模板
 
 ./examples/gitops-repo/
-  .github/
-    CODEOWNERS
-    dependabot.yaml
-    pull_request_template.md
-    workflows/
-      validate.yaml
-      promote.yaml
-  argocd-apps/
-    root-app.yaml
-    dev/
-    test/
-    staging/
-    prod/
-  charts/demo-service/
-  environments/
-    dev/
-    test/
-    staging/
-    prod/
+  GitOps 仓库模板
 ```
 
-这个结构符合 GitOps 的主流实践，尤其适合 ArgoCD 的 App of Apps 模式。它的核心优点是把“ArgoCD 应用入口”和“各环境部署参数”分开管理：
+这个结构让蓝图仓库本身保持简洁，同时保留两个可复制的仓库模板。`examples/app-repo` 负责应用代码、测试、镜像构建、扫描、版本发布和 Dev GitOps PR；`examples/gitops-repo` 负责 Argo CD Application、Helm chart、环境 values、校验、晋级和 smoke test。
+
+GitOps 模板符合 GitOps 的主流实践，尤其适合 ArgoCD 的 App of Apps 模式。它的核心优点是把“ArgoCD 应用入口”和“各环境部署参数”分开管理：
 
 - `argocd-apps/`：存放 ArgoCD `Application` 或 `ApplicationSet`，描述哪些应用要部署到哪些集群或命名空间。
 - `argocd-apps/root-app.yaml`：作为 App of Apps 的根应用入口，由它递归管理各环境应用。

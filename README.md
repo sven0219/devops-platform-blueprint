@@ -77,58 +77,21 @@ Recommended repository split:
 
 ```text
 ./.github/
-  CODEOWNERS
-  dependabot.yaml
-  pull_request_template.md
+  Repository governance templates
 
 ./docs/
-  adr/
-  governance/
-    release-hotfix.md
-    environment-entry.md
-  guides/
-    service-onboarding.md
-  runbooks/
-    prod-change.md
+  Architecture decisions, governance, guides, and runbooks
 
 ./examples/app-repo/
-  .github/
-    CODEOWNERS
-    dependabot.yaml
-    pull_request_template.md
-    workflows/
-      ci.yaml
-      release.yaml
-  src/
-    server.js
-  test/
-    server.test.js
-  Dockerfile
-  package.json
+  Application repository template
 
 ./examples/gitops-repo/
-  .github/
-    CODEOWNERS
-    dependabot.yaml
-    pull_request_template.md
-    workflows/
-      validate.yaml
-      promote.yaml
-  argocd-apps/
-    root-app.yaml
-    dev/
-    test/
-    staging/
-    prod/
-  charts/demo-service/
-  environments/
-    dev/
-    test/
-    staging/
-    prod/
+  GitOps repository template
 ```
 
-This structure follows common GitOps practice and works especially well with ArgoCD's App of Apps pattern. The main idea is to separate "ArgoCD application entry points" from "environment-specific deployment configuration".
+This structure keeps the blueprint itself small while preserving two copyable repository templates. `examples/app-repo` owns application code, tests, image build, scan, release, and Dev GitOps PR creation. `examples/gitops-repo` owns Argo CD applications, Helm chart, environment values, validation, promotion, and smoke tests.
+
+The GitOps template follows common GitOps practice and works especially well with ArgoCD's App of Apps pattern. The main idea is to separate "ArgoCD application entry points" from "environment-specific deployment configuration".
 
 - `argocd-apps/`: stores ArgoCD `Application` or `ApplicationSet` manifests that describe what should be deployed and where.
 - `argocd-apps/root-app.yaml`: root App of Apps entry point that recursively manages environment applications.
