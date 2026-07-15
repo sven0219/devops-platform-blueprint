@@ -1,0 +1,9 @@
+# Replace these example teams with real GitHub teams before enforcing reviews.
+* @example-org/app-team
+
+/.github/workflows/ @example-org/app-team @example-org/platform-engineering
+/Dockerfile @example-org/app-team @example-org/platform-engineering
+/package.json @example-org/app-team
+/package-lock.json @example-org/app-team
+/src/ @example-org/app-team
+/test/ @example-org/app-team
