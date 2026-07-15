@@ -62,19 +62,23 @@ Responsibility boundaries:
 Recommended repository split:
 
 ```text
-app-repo/
+./app-repo/
+  .github/workflows/ci.yaml
   src/
+    server.js
+  test/
+    server.test.js
   Dockerfile
-  .github/workflows/
+  package.json
 
-gitops-repo/
+./gitops-repo/
   argocd-apps/
     root-app.yaml
     dev/
     test/
     staging/
     prod/
-  charts/
+  charts/demo-service/
   environments/
     dev/
     test/
