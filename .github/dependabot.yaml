@@ -1,19 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: github-actions
-    directory: /
-    schedule:
-      interval: weekly
-      day: monday
-      time: "09:00"
-      timezone: Asia/Shanghai
-    open-pull-requests-limit: 5
-    labels:
-      - dependencies
-      - github-actions
-
-  - package-ecosystem: github-actions
-    directory: /examples/app-repo
+    directory: /examples/app-repo/.github/workflows
     schedule:
       interval: weekly
       day: monday
@@ -37,7 +25,7 @@ updates:
       - npm
 
   - package-ecosystem: github-actions
-    directory: /examples/gitops-repo
+    directory: /examples/gitops-repo/.github/workflows
     schedule:
       interval: weekly
       day: monday
