@@ -5,5 +5,5 @@
 /README.zh-CN.md @example-org/platform-engineering
 /docs/ @example-org/platform-engineering
 
-/app-repo/ @example-org/app-team @example-org/platform-engineering
-/gitops-repo/ @example-org/platform-engineering @example-org/sre
+/examples/app-repo/ @example-org/app-team @example-org/platform-engineering
+/examples/gitops-repo/ @example-org/platform-engineering @example-org/sre

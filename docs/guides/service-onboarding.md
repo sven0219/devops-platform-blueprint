@@ -4,8 +4,8 @@ Use this guide when a new service adopts the platform blueprint. The goal is to 
 
 ## 1. Create Repositories
 
-1. Create an application repository from `app-repo/`.
-2. Create or extend a GitOps repository from `gitops-repo/`.
+1. Create an application repository from `examples/app-repo/`.
+2. Create or extend a GitOps repository from `examples/gitops-repo/`.
 3. Replace `demo-service` with the real service name in:
    - `package.json`
    - `Dockerfile`
@@ -94,8 +94,8 @@ Before the first production release, confirm:
 
 ## 1. 创建仓库
 
-1. 基于 `app-repo/` 创建应用仓库。
-2. 基于 `gitops-repo/` 创建或扩展 GitOps 仓库。
+1. 基于 `examples/app-repo/` 创建应用仓库。
+2. 基于 `examples/gitops-repo/` 创建或扩展 GitOps 仓库。
 3. 将 `demo-service` 替换为真实服务名，至少包括：
    - `package.json`
    - `Dockerfile`

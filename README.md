@@ -11,10 +11,10 @@ This blueprint includes starter governance files that should be adapted to the t
 - `.github/CODEOWNERS`: review ownership for the blueprint, example app, GitOps templates, and ADRs.
 - `.github/pull_request_template.md`: common pull request checklist for documentation, platform, and template changes.
 - `.github/dependabot.yaml`: dependency update schedule for GitHub Actions and the sample application.
-- `docs/release-hotfix.md`: bilingual release, hotfix, rollback, and approval process.
-- `docs/service-onboarding.md`: checklist for onboarding a new service to the app and GitOps templates.
-- `docs/environment-entry.md`: environment entry and exit criteria for Dev, Test, Staging, and Prod.
-- `docs/prod-change-runbook.md`: production change execution, verification, and rollback runbook.
+- `docs/governance/release-hotfix.md`: bilingual release, hotfix, rollback, and approval process.
+- `docs/guides/service-onboarding.md`: checklist for onboarding a new service to the app and GitOps templates.
+- `docs/governance/environment-entry.md`: environment entry and exit criteria for Dev, Test, Staging, and Prod.
+- `docs/runbooks/prod-change.md`: production change execution, verification, and rollback runbook.
 - `docs/adr/`: architecture decision record index, template, and the first accepted ADR.
 - `LICENSE`: MIT license for reuse as a platform blueprint.
 
@@ -82,13 +82,16 @@ Recommended repository split:
   pull_request_template.md
 
 ./docs/
-  release-hotfix.md
-  service-onboarding.md
-  environment-entry.md
-  prod-change-runbook.md
   adr/
+  governance/
+    release-hotfix.md
+    environment-entry.md
+  guides/
+    service-onboarding.md
+  runbooks/
+    prod-change.md
 
-./app-repo/
+./examples/app-repo/
   .github/
     CODEOWNERS
     dependabot.yaml
@@ -103,7 +106,7 @@ Recommended repository split:
   Dockerfile
   package.json
 
-./gitops-repo/
+./examples/gitops-repo/
   .github/
     CODEOWNERS
     dependabot.yaml
@@ -150,7 +153,7 @@ Merge application code
   -> Promote the same image through Test, Staging, and Prod pull requests
 ```
 
-`app-repo` and `gitops-repo` are templates for two independent GitHub repositories. Nested workflows become active when each directory is used as the root of its own repository. The application repository requires `GITOPS_REPOSITORY` and `GITOPS_TOKEN`; the GitOps repository requires `PROMOTION_TOKEN` and GitHub Environments named `test`, `staging`, and `prod`. See each example's README for token permissions and operating instructions.
+`examples/app-repo` and `examples/gitops-repo` are templates for two independent GitHub repositories. Nested workflows become active when each directory is used as the root of its own repository. The application repository requires `GITOPS_REPOSITORY` and `GITOPS_TOKEN`; the GitOps repository requires `PROMOTION_TOKEN` and GitHub Environments named `test`, `staging`, and `prod`. See each example's README for token permissions and operating instructions.
 
 ## 3. Infrastructure Plan
 
@@ -290,10 +293,10 @@ Repository governance:
 - Pull request templates should require validation evidence, release impact, rollback notes, and environment scope.
 - Dependabot should update GitHub Actions and package dependencies through normal PR review, not by bypassing CI.
 - Architecture decisions that change repository boundaries, promotion policy, production controls, or security posture should be recorded under `docs/adr/`.
-- Release and hotfix handling should follow `docs/release-hotfix.md`, including immutable image promotion and explicit rollback ownership.
-- New services should follow `docs/service-onboarding.md` before their first production promotion.
-- Environment promotions should use `docs/environment-entry.md` as the evidence checklist.
-- Production changes should follow `docs/prod-change-runbook.md` and record verification evidence in the production pull request.
+- Release and hotfix handling should follow `docs/governance/release-hotfix.md`, including immutable image promotion and explicit rollback ownership.
+- New services should follow `docs/guides/service-onboarding.md` before their first production promotion.
+- Environment promotions should use `docs/governance/environment-entry.md` as the evidence checklist.
+- Production changes should follow `docs/runbooks/prod-change.md` and record verification evidence in the production pull request.
 
 ## 9. Roles and Collaboration
 

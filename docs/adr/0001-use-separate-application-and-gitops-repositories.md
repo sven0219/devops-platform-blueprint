@@ -14,8 +14,8 @@ Keeping both concerns in one repository is simpler for demos, but it couples app
 
 Use two independent repositories:
 
-- `app-repo`: application source, CI, image build, image scan, GHCR push, and automated Dev GitOps pull request creation.
-- `gitops-repo`: Argo CD applications, Helm chart, environment values, smoke test hook, validation workflow, and promotion workflow.
+- `examples/app-repo`: application source, CI, image build, image scan, GHCR push, and automated Dev GitOps pull request creation.
+- `examples/gitops-repo`: Argo CD applications, Helm chart, environment values, smoke test hook, validation workflow, and promotion workflow.
 
 The examples remain in one blueprint repository only as templates. When adopted, each directory should become the root of its own GitHub repository.
 
