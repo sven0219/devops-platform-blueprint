@@ -19,10 +19,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 20
           cache: npm
@@ -49,7 +49,7 @@ jobs:
       tag: ${{ steps.meta.outputs.tag }}
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Generate image tag
         id: meta
@@ -70,7 +70,7 @@ jobs:
             -t "${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}" .
 
       - name: Scan image
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
           format: table
@@ -93,14 +93,14 @@ jobs:
       contents: read
     steps:
       - name: Check out GitOps repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: ${{ env.GITOPS_REPOSITORY }}
           token: ${{ secrets.GITOPS_TOKEN }}
           path: gitops
 
       - name: Update Dev image
-        uses: mikefarah/yq@v4.44.3
+        uses: mikefarah/yq@v4.53.3
         with:
           cmd: >-
             yq -i
@@ -109,7 +109,7 @@ jobs:
             gitops/environments/dev/demo-service-values.yaml
 
       - name: Create Dev deployment pull request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.GITOPS_TOKEN }}
           path: gitops
