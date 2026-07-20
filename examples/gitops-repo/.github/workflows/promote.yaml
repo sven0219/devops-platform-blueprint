@@ -26,7 +26,7 @@ jobs:
       cancel-in-progress: false
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           token: ${{ secrets.PROMOTION_TOKEN }}
 
@@ -44,7 +44,7 @@ jobs:
           echo "source=$source" >> "$GITHUB_OUTPUT"
 
       - name: Copy the promoted image into the target environment
-        uses: mikefarah/yq@v4.44.3
+        uses: mikefarah/yq@v4.53.3
         env:
           SOURCE: ${{ steps.route.outputs.source }}
           TARGET: ${{ inputs.target_environment }}
@@ -64,7 +64,7 @@ jobs:
           echo "reference=$image" >> "$GITHUB_OUTPUT"
 
       - name: Create promotion pull request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.PROMOTION_TOKEN }}
           branch: promote/demo-service-${{ steps.route.outputs.source }}-to-${{ inputs.target_environment }}
